@@ -141,7 +141,7 @@ def main():
         phase_t = np.array(phase_times, dtype=np.float32)
         phase_l = np.array(phase_labels, dtype=object)
 
-        out_dir = "./Projects/dc_power_draw/results"
+        out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results")
         os.makedirs(out_dir, exist_ok=True)
         np.save(os.path.join(out_dir, "timestamps.npy"), times)
         np.save(os.path.join(out_dir, "power_per_gpu.npy"), p_mat)   # (N, ngpu) or (N,1)
@@ -162,4 +162,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-# torchrun --standalone --nproc_per_node=2 Projects/dc_power_draw/run.py
+# torchrun --standalone --nproc_per_node=2 code/run.py
