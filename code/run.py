@@ -1,34 +1,19 @@
 import os
+import time
+import threading
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-from utils import *
+from utils import (
+    is_ddp, get_rank, get_world_size,
+    ddp_setup, ddp_barrier, ddp_cleanup, wrap_ddp,
+    power_monitor,
+)
+# TODO: PretrainWorkload, SFTWorkload, MLLMWorkload, EvalWorkload
+#       are not yet defined in LLM_toymodel.py — add them there.
 from LLM_toymodel import *
 import numpy as np
 import matplotlib.pyplot as plt
-
-def ddp_setup():
-    if not is_ddp():
-        return 0, 1
-    dist.init_process_group("nccl")
-    rank = get_rank()
-    world = get_world_size()
-    torch.cuda.set_device(rank)
-    return rank, world
-
-def ddp_barrier():
-    if is_ddp():
-        dist.barrier()
-
-def ddp_cleanup():
-    if is_ddp():
-        dist.destroy_process_group()
-
-def wrap_ddp(model, device):
-    model = model.to(device)
-    if is_ddp():
-        model = DDP(model, device_ids=[device.index], output_device=device.index, broadcast_buffers=False)
-    return model
 
 def _to_numpy_power(power_samples):
     p = np.array(power_samples, dtype=np.float32)
@@ -99,7 +84,6 @@ def main():
 
     monitor = None
     if rank == 0:
-        pynvml.nvmlInit()
         monitor = threading.Thread(
             target=power_monitor,
             args=(0.05, stop_flag, timestamps, power_samples, t0),
@@ -131,7 +115,6 @@ def main():
     if rank == 0:
         stop_flag["stop"] = True
         monitor.join()
-        pynvml.nvmlShutdown()
 
         print(f"Collected {len(timestamps)} samples.")
 

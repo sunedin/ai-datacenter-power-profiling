@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+# TODO: Add PretrainWorkload, SFTWorkload, MLLMWorkload, EvalWorkload classes
+#       that wrap these models with data loaders and training/eval loops.
+#       Each Workload class should expose a run(n_steps) method.
+
 class ToyLLMModel(nn.Module):
     def __init__(self, vocab_size=32000, d_model=1024,
                  nhead=8, num_layers=8, dim_ff=4096, max_len=512):

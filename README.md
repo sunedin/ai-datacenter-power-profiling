@@ -1,11 +1,20 @@
 # Understanding GPU Power Profiles in AI Data Centers
 
-## Project Overview
+## Motivation
 
-This project investigates the GPU power consumption characteristics of different AI workload types in a data center environment. The goal is to build a practical understanding of how various AI tasks — pretraining, supervised fine-tuning (SFT), multimodal large language model training (MLLM), and inference/evaluation (Eval) — differ in their GPU power draw profiles. The work is divided into two parts:
+As AI training clusters grow to hundreds of megawatts, understanding their power consumption behavior has become critical for grid planning and data center operations. Choukse et al. (2025) — *Power Stabilization for AI Training Datacenters* (arXiv: 2508.14318, Microsoft / OpenAI / NVIDIA) — present the first detailed characterization of power dynamics in large-scale AI training facilities. Their key findings motivate this project:
 
-1. **Workload composition analysis** based on real data center job traces, to understand the proportion and resource demands of each task type.
-2. **Per-GPU power profiling** via local simulation, to measure the power draw signature of each workload phase.
+**GPU power is not constant during training.** Each training iteration cycles through compute-heavy phases (forward/backward pass, drawing near-TDP power) and communication phases (gradient synchronization, where GPU power drops significantly). Because bulk-synchronous parallelism keeps thousands of GPUs in lock-step, these cycles are **correlated across the entire cluster**, producing large aggregate power swings rather than averaging out.
+
+**These swings create real problems for the electrical grid:**
+
+1. **Ramp rate violations.** Rapid power transitions between training phases can exceed the MW/minute ramp limits that utilities impose on large loads. Choukse et al. show that AI data centers can violate ramp rate thresholds much more frequently than conventional workloads.
+2. **Dynamic power range and voltage flicker.** The difference between peak and trough power during a training job determines the dynamic power envelope the grid must accommodate. Large swings can cause voltage fluctuations on distribution feeders, known as flicker.
+3. **Frequency-domain concerns.** The periodic nature of training iterations injects power oscillations at specific frequencies. Inter-area oscillation modes (roughly 0.2–3 Hz) are a known grid stability concern, and per-iteration cycling of large GPU clusters can fall in or near these bands. Torsional resonance of turbine-generator shafts occurs at higher frequencies (roughly 7–100+ Hz) and is a separate concern; the point is that periodic load patterns at any frequency deserve grid-impact analysis.
+
+**Note on time scales:** The per-iteration power oscillations documented in Choukse et al. (their Figure 1 and StratoSim simulations) occur at sub-second granularity within individual training steps. Our simulation experiment does *not* capture these intra-iteration dynamics — we profile at the workload-phase level, measuring the average power envelope of each task type (Pretrain, SFT, MLLM, Eval) over tens of seconds to minutes. This gives us the **static power profile per workload type**, which is the building block for estimating aggregate data center demand when combined with job scheduling traces. Capturing the fast intra-step oscillations would require sub-millisecond instrumentation and is left for future work.
+
+This project takes a first step toward characterizing workload-level power profiles: we analyze real data center job traces to understand workload composition, then measure per-GPU power draw for representative AI tasks on local hardware.
 
 ---
 
@@ -68,14 +77,16 @@ Each workload uses a representative model architecture:
 
 The phases ran sequentially with idle gaps between them (10 s each) for clear phase separation.
 
-### Results: Per-GPU Power Draw (2-GPU Total)
+### Results
 
-| Phase    | Mean Power (W) | Std (W) | Min (W) | Max (W) | P5 (W) | P95 (W) |
-|----------|---------------|---------|---------|---------|---------|---------|
-| Pretrain | **663.5**     | 38.9    | 470.1   | 680.4   | —       | —       |
-| SFT      | **658.9**     | 28.8    | 556.0   | 674.2   | —       | —       |
-| MLLM     | **556.1**     | 37.3    | 466.3   | 580.4   | —       | —       |
-| Eval     | **315.7**     | 1.7     | 311.4   | 319.4   | —       | —       |
+![Power Draw with Workload Phases](results/power_draw.png)
+
+| Phase    | Mean Power (W) | Std (W) | Min (W) | Max (W) |
+|----------|---------------|---------|---------|---------|
+| Pretrain | **663.5**     | 38.9    | 470.1   | 680.4   |
+| SFT      | **658.9**     | 28.8    | 556.0   | 674.2   |
+| MLLM     | **556.1**     | 37.3    | 466.3   | 580.4   |
+| Eval     | **315.7**     | 1.7     | 311.4   | 319.4   |
 
 *Total power across 2 GPUs; per-GPU values are approximately half.*
 
@@ -107,6 +118,13 @@ Combined with Part 1's workload composition data (GPU count distribution and job
 | Power per GPU | Pretrain/SFT: ~330 W; MLLM: ~278 W; Eval: ~158 W |
 | Scalability | Per-GPU profiles scale linearly due to synchronous data-parallel training |
 | Cluster utilization | Average ~259 GPUs active concurrently, peak ~1,705 GPUs |
+
+---
+
+## References
+
+- Choukse, E. et al. (2025). *Power Stabilization for AI Training Datacenters.* arXiv:2508.14318. Microsoft / OpenAI / NVIDIA.
+- AcmeTrace dataset: `Qinghao/AcmeTrace` on HuggingFace.
 
 ---
 
