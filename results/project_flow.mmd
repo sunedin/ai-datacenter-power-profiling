@@ -6,55 +6,55 @@ config:
 flowchart TB
     subgraph DM["Workload Demand Modelling()"]
         direction TB
-        A1["AcmeTrace Dataset\n─────────────\nSeren · Kalos\nPhilly · Helios · PAI"]
-        A2["Job Types\n─────────────\nPretrain · SFT\nMLLM · Eval"]
-        A3["Job Attributes\n─────────────\nGPU count\nDuration\nQueue time"]
+        A1["AcmeTrace Dataset<br/>─────────────<br/>Seren · Kalos<br/>Philly · Helios · PAI"]
+        A2["Job Types<br/>─────────────<br/>Pretrain · SFT<br/>MLLM · Eval"]
+        A3["Job Attributes<br/>─────────────<br/>GPU count<br/>Duration<br/>Queue time"]
         A1 --> A2 --> A3
     end
 
     subgraph DF["Workload Demand Forecasting"]
         direction TB
-        A4["GPU count distribution\nper task type"]
-        A5["Cluster utilization\ntimeline"]
+        A4["GPU count distribution<br/>per task type"]
+        A5["Cluster utilization<br/>timeline"]
         A4 --- A5
     end
 
     subgraph PM["Power Profile Modelling()"]
         direction TB
-        B1["Local Server\n─────────────\n2× RTX 3080\nNVML @ 50ms"]
-        B2["4 Workloads\n─────────────\nPretrain: BERT\nSFT: GPT-2\nMLLM: BLIP-2\nEval: GPT-2"]
+        B1["Local Server<br/>─────────────<br/>2× RTX 3080<br/>NVML @ 50ms"]
+        B2["4 Workloads<br/>─────────────<br/>Pretrain: BERT<br/>SFT: GPT-2<br/>MLLM: BLIP-2<br/>Eval: GPT-2"]
         B1 --> B2
     end
 
     subgraph PP["Per-GPU Power Profiles"]
         direction TB
-        B3["Pretrain ~332 W/GPU\nSFT      ~330 W/GPU\nMLLM    ~278 W/GPU\nEval      ~158 W/GPU"]
+        B3["Pretrain ~332 W/GPU<br/>SFT ~330 W/GPU<br/>MLLM ~278 W/GPU<br/>Eval ~158 W/GPU"]
     end
 
     subgraph SC["Scaling: DDP Linear Assumption"]
         direction TB
-        C1["Per-GPU power ×\nGPU count per job\n= Job power (kW)"]
+        C1["Per-GPU power ×<br/>GPU count per job<br/>= Job power (kW)"]
     end
 
     A3 --> DF
     B2 --> PP
 
-    DF -->|"GPU count\n& schedule"| SC
-    PP -->|"W/GPU\nper type"| SC
+    DF -->|"GPU count<br/>& schedule"| SC
+    PP -->|"W/GPU<br/>per type"| SC
 
     subgraph GI["⚡ Grid Impact Assessment"]
         direction LR
-        G1["Ramp Rate\nMW/min\nviolations"]
-        G2["Voltage\nFlicker\nΔV swings"]
-        G3["Frequency\nOscillation\n0.2–100+ Hz"]
+        G1["Ramp Rate<br/>MW/min<br/>violations"]
+        G2["Voltage<br/>Flicker<br/>ΔV swings"]
+        G3["Frequency<br/>Oscillation<br/>0.2–100+ Hz"]
     end
 
     SC -->|"aggregate\ncluster power"| GI
 
     subgraph DATA["Data Sources"]
         direction LR
-        DA["AcmeTrace: real traces\n(historical, 2023)"]
-        DB["NVML: measured power\n(local experiment)"]
+        DA["AcmeTrace: real traces<br/>(historical, 2023)"]
+        DB["NVML: measured power<br/>(local experiment)"]
     end
 
     DATA -.->|"input"| DM
