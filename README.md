@@ -16,10 +16,6 @@ As AI training clusters grow to hundreds of megawatts, understanding their power
 
 This project takes a first step toward characterizing workload-level power profiles: we analyze real data center job traces to understand workload composition, then measure per-GPU power draw for representative AI tasks on local hardware.
 
-### Project Flow
-
-![Project Flow: GPU Power Profiling for Grid Impact Analysis](results/project_flow.png)
-
 ---
 
 ## Part 1: Data Center Workload Composition
@@ -214,3 +210,9 @@ Power draw/
 3. Run power profiling (requires NVIDIA GPU): `torchrun --standalone --nproc_per_node=2 code/run.py`
 4. Open `notebooks/result.ipynb` to visualize results
 5. Open `notebooks/CheckDataset.ipynb` to explore the trace data
+
+---
+
+## Appendix: Project Flow
+
+![Project Flow: GPU Power Profiling for Grid Impact Analysis](results/project_flow.png)
