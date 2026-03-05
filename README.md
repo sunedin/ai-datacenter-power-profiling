@@ -3,6 +3,8 @@
 **Authors:** Yifan Wang and Wei Sun @ WLab, IES, University of Edinburgh 
 **License:** [CC BY-NC-ND 4.0](LICENSE)
 
+> We analyze the AcmeTrace production data center dataset to characterize GPU workload composition — job types, GPU allocation, duration, and cluster utilization across 179k jobs. We then profile per-GPU power draw for four representative AI tasks (Pretrain, SFT, MLLM, Eval) on local hardware, enabling scalable estimation of aggregate data center power demand and its potential grid impact.
+
 ## ⚡ Motivation
 
 As AI training clusters grow to hundreds of megawatts, understanding their power consumption behavior has become critical for grid planning and data center operations. Choukse et al. (2025) — *Power Stabilization for AI Training Datacenters* (arXiv: 2508.14318, Microsoft / OpenAI / NVIDIA) — present the first detailed characterization of power dynamics in large-scale AI training facilities. Their key findings motivate this project:
