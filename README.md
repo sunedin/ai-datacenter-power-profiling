@@ -1,6 +1,10 @@
 # Understanding GPU Power Profiles in AI Data Centers
 
-## Motivation
+**Authors:** Yifan Wang and Wei Sun 
+**Affiliation:** Wind Energy and Power Systems Lab (WLab), Institute for Energy Systems (IES), University of Edinburgh 
+**License:** [CC BY-NC-ND 4.0](LICENSE)
+
+## ⚡ Motivation
 
 As AI training clusters grow to hundreds of megawatts, understanding their power consumption behavior has become critical for grid planning and data center operations. Choukse et al. (2025) — *Power Stabilization for AI Training Datacenters* (arXiv: 2508.14318, Microsoft / OpenAI / NVIDIA) — present the first detailed characterization of power dynamics in large-scale AI training facilities. Their key findings motivate this project:
 
@@ -18,7 +22,7 @@ This project takes a first step toward characterizing workload-level power profi
 
 ---
 
-## Part 1: Data Center Workload Composition
+## 📊 Part 1: Data Center Workload Composition
 
 ### Data Source
 
@@ -92,7 +96,7 @@ The cluster runs an average of **~259 GPUs concurrently** (median 178), peaking 
 
 ---
 
-## Part 2: GPU Power Profiling via Simulation
+## 🔬 Part 2: GPU Power Profiling via Simulation
 
 ### Setup
 
@@ -143,7 +147,7 @@ Combined with Part 1's workload composition data (GPU count distribution and job
 
 ---
 
-## Summary
+## 📋 Summary
 
 | Aspect | Key Takeaway |
 |--------|-------------|
@@ -155,14 +159,14 @@ Combined with Part 1's workload composition data (GPU count distribution and job
 
 ---
 
-## References
+## 📚 References
 
 - Choukse, E. et al. (2025). *Power Stabilization for AI Training Datacenters.* arXiv:2508.14318. Microsoft / OpenAI / NVIDIA.
 - AcmeTrace dataset: `Qinghao/AcmeTrace` on HuggingFace.
 
 ---
 
-## Repository Structure
+## 🗂️ Repository Structure
 
 ```
 Power draw/
@@ -213,6 +217,6 @@ Power draw/
 
 ---
 
-## Appendix: Project Flow
+## 📐 Appendix: Project Flow
 
 ![Project Flow: GPU Power Profiling for Grid Impact Analysis](results/project_flow.png)
