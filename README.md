@@ -1,7 +1,6 @@
 # Understanding GPU Power Profiles in AI Data Centers
 
-**Authors:** Yifan Wang and Wei Sun 
-**Affiliation:** Wind Energy and Power Systems Lab (WLab), Institute for Energy Systems (IES), University of Edinburgh 
+**Authors:** Yifan Wang and Wei Sun @ WLab, IES, University of Edinburgh 
 **License:** [CC BY-NC-ND 4.0](LICENSE)
 
 ## ⚡ Motivation
