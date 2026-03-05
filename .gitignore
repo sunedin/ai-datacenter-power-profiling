@@ -6,7 +6,7 @@ results/*.npy
 # Note: results/*.png is tracked (for README figure)
 
 # Rendered reports (regenerate from notebooks)
-outputs/
+outputs/*.html
 
 # Python
 __pycache__/
@@ -20,4 +20,6 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
-*.pdf
+
+# PDFs (except reference paper and README export)
+# *.pdf is not blanket-ignored; specific PDFs are tracked

@@ -16,6 +16,72 @@ As AI training clusters grow to hundreds of megawatts, understanding their power
 
 This project takes a first step toward characterizing workload-level power profiles: we analyze real data center job traces to understand workload composition, then measure per-GPU power draw for representative AI tasks on local hardware.
 
+### Project Flow
+
+```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
+flowchart TB
+    subgraph DM["Workload Demand Modelling()"]
+        direction TB
+        A1["AcmeTrace Dataset\n─────────────\nSeren · Kalos\nPhilly · Helios · PAI"]
+        A2["Job Types\n─────────────\nPretrain · SFT\nMLLM · Eval"]
+        A3["Job Attributes\n─────────────\nGPU count\nDuration\nQueue time"]
+        A1 --> A2 --> A3
+    end
+
+    subgraph DF["Workload Demand Forecasting"]
+        direction TB
+        A4["GPU count distribution\nper task type"]
+        A5["Cluster utilization\ntimeline"]
+        A4 --- A5
+    end
+
+    subgraph PM["Power Profile Modelling()"]
+        direction TB
+        B1["Local Server\n─────────────\n2× RTX 3080\nNVML @ 50ms"]
+        B2["4 Workloads\n─────────────\nPretrain: BERT\nSFT: GPT-2\nMLLM: BLIP-2\nEval: GPT-2"]
+        B1 --> B2
+    end
+
+    subgraph PP["Per-GPU Power Profiles"]
+        direction TB
+        B3["Pretrain ~332 W/GPU\nSFT      ~330 W/GPU\nMLLM    ~278 W/GPU\nEval      ~158 W/GPU"]
+    end
+
+    subgraph SC["Scaling: DDP Linear Assumption"]
+        direction TB
+        C1["Per-GPU power ×\nGPU count per job\n= Job power (kW)"]
+    end
+
+    A3 --> DF
+    B2 --> PP
+
+    DF -->|"GPU count\n& schedule"| SC
+    PP -->|"W/GPU\nper type"| SC
+
+    subgraph GI["⚡ Grid Impact Assessment"]
+        direction LR
+        G1["Ramp Rate\nMW/min\nviolations"]
+        G2["Voltage\nFlicker\nΔV swings"]
+        G3["Frequency\nOscillation\n0.2–100+ Hz"]
+    end
+
+    SC -->|"aggregate\ncluster power"| GI
+
+    subgraph DATA["Data Sources"]
+        direction LR
+        DA["AcmeTrace: real traces\n(historical, 2023)"]
+        DB["NVML: measured power\n(local experiment)"]
+    end
+
+    DATA -.->|"input"| DM
+    DATA -.->|"input"| PM
+```
+
 ---
 
 ## Part 1: Data Center Workload Composition
@@ -51,10 +117,44 @@ The following table summarizes the GPU allocation per job across types:
 
 **Pretrain jobs use far more GPUs** than any other type (median 128, up to 1,024), while Eval and SFT typically use 1–8 GPUs. This aligns with the industry pattern where large-scale pretraining requires massive data-parallel or model-parallel GPU clusters.
 
-Other notable patterns from the Seren trace:
-- **Duration**: MLLM and Pretrain jobs run much longer on average (hours to days) compared to Eval/SFT (minutes to hours).
-- **Queue time**: MLLM jobs wait longest; Pretrain jobs (despite high GPU count) have relatively short queue times, suggesting they receive priority scheduling.
-- **Overall cluster utilization**: Across the Seren trace (~173-day span), the cluster runs an average of **~259 GPUs concurrently** (median 178), peaking at **1,705 GPUs** simultaneously.
+### Job Duration by Task Type
+ 
+| Stat         | Eval     | SFT      | MLLM      | Pretrain   |
+|--------------|----------|----------|-----------|------------|
+| Mean         | 0.35 h   | 0.27 h   | **1.71 h**| **1.51 h** |
+| Median       | 0.09 h   | 0.09 h   | 0.18 h    | 0.02 h     |
+| 5th pctl     | 0.03 h   | 0.02 h   | 0.01 h    | ~0 h       |
+| 95th pctl    | 1.02 h   | 0.76 h   | **6.98 h**| **8.68 h** |
+| Max          | 324.11 h | 117.54 h | 91.00 h   | 146.64 h   |
+
+MLLM and Pretrain jobs run much longer on average (hours to days) compared to Eval/SFT (minutes to hours). At the 95th percentile, Pretrain jobs reach ~8.7 hours and MLLM ~7.0 hours.
+
+### Queue Time by Task Type
+
+| Stat         | Eval     | SFT      | MLLM       | Pretrain  |
+|--------------|----------|----------|------------|-----------|
+| Mean         | 0.07 h   | 0.05 h   | **0.20 h** | 0.02 h    |
+| Median       | ~0 h     | ~0 h     | ~0 h       | ~0 h      |
+| 95th pctl    | 0.26 h   | 0.15 h   | **0.62 h** | 0.01 h    |
+| Max          | 19.03 h  | 15.91 h  | 15.45 h    | 4.35 h    |
+
+MLLM jobs wait longest (mean 0.20 h); Pretrain jobs (despite high GPU count) have remarkably short queue times (mean 0.02 h), suggesting they receive priority scheduling.
+
+### Overall Cluster Utilization
+
+Across the Seren trace (~173-day span, 2023-03-02 to 2023-08-21):
+
+| Stat              | Concurrent GPUs |
+|-------------------|-----------------|
+| Mean              | **259**         |
+| Median            | 178             |
+| 25th pctl         | 11              |
+| 75th pctl         | 332             |
+| 95th pctl         | 993             |
+| Peak (max)        | **1,705**       |
+| Idle time (0 GPUs)| 21.7%           |
+
+The cluster runs an average of **~259 GPUs concurrently** (median 178), peaking at **1,705 GPUs** simultaneously. Roughly 21.7% of minutes have zero active GPUs, indicating significant idle periods.
 
 ---
 
@@ -135,6 +235,7 @@ Power draw/
 ├── README.md                  # This document
 ├── requirements.txt           # Python dependencies
 ├── .gitignore
+├── Choukse2025_Power_Stabilization_AI_Datacenters.pdf  # Reference paper (arXiv:2508.14318)
 ├── data/                      # AcmeTrace job traces (download from HuggingFace)
 │   ├── cluster_summary.csv
 │   ├── trace_seren.csv        # Primary dataset used in analysis
@@ -160,7 +261,7 @@ Power draw/
 ├── outputs/                   # Rendered HTML/PDF reports
 │   ├── CheckDataset.html
 │   ├── result.html
-│   └── result.pdf
+│   └── README.pdf             # PDF export of this README
 └── reference/                 # Tutorial notebooks (external, for learning only)
     ├── Pretrain.ipynb
     ├── SFT.ipynb
